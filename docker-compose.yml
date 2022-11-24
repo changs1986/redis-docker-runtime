@@ -14,6 +14,9 @@ services:
       # 映射配置文件和数据目录
       - ./conf/master:/usr/local/etc/redis
       - ./data/redis-master:/data
+    deploy:
+      placement:
+        constraints: [node.labels.master==true]
     sysctls:
       # 必要的内核参数
       net.core.somaxconn: '511'
@@ -29,6 +32,9 @@ services:
     volumes: 
       - ./conf/slave1:/usr/local/etc/redis
       - ./data/redis-slave-1:/data
+    deploy:
+      placement:
+        constraints: [node.labels.slave1==true]
     sysctls: 
       net.core.somaxconn: '511'
     command: redis-server /usr/local/etc/redis/redis.conf
@@ -42,6 +48,9 @@ services:
     volumes: 
       - ./conf/slave2:/usr/local/etc/redis
       - ./data/redis-slave-2:/data
+    deploy:
+      placement:
+        constraints: [node.labels.slave2==true]
     sysctls:
       net.core.somaxconn: '511'
     command: redis-server /usr/local/etc/redis/redis.conf 
@@ -49,12 +58,15 @@ services:
   sentinel1:
     image: redis
     container_name: redis-sentinel-1
-    command: sleep 40000
+    command: redis-server /usr/local/etc/redis/sentinel.conf --sentinel
     restart: always
     depends_on:
       - redis-server-master
       - redis-server-slave-1
       - redis-server-slave-2
+    deploy:
+      placement:
+        constraints: [node.labels.master==true]
     volumes:
       - ./conf/master/:/usr/local/etc/redis
 
@@ -67,6 +79,9 @@ services:
       - redis-server-master
       - redis-server-slave-1
       - redis-server-slave-2
+    deploy:
+      placement:
+        constraints: [node.labels.slave1==true]
     volumes:
       - ./conf/slave1:/usr/local/etc/redis
 
@@ -79,5 +94,8 @@ services:
       - redis-server-master
       - redis-server-slave-1
       - redis-server-slave-2
+    deploy:
+      placement:
+        constraints: [node.labels.slave2==true]
     volumes:
       - ./conf/slave2:/usr/local/etc/redis
